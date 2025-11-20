@@ -17,7 +17,7 @@ pub const Vec3 = extern struct {
 
     /// Initialize a vector with all components set to init_zero.
     pub fn init_zero() Vec3 {
-        return Vec3{
+        return .{
             .x = 0.0,
             .y = 0.0,
             .z = 0.0,
