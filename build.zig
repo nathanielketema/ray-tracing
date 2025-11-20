@@ -12,9 +12,35 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+
     b.installArtifact(exe);
 
-    const run_step = b.step("run", "Run the app");
-    const run_cmd = b.addRunArtifact(exe);
-    run_step.dependOn(&run_cmd.step);
+    const render_step = b.step("run", "Render image to src/images/image.ppm");
+    
+    const mkdir_cmd = b.addSystemCommand(&.{
+        "mkdir",
+        "-p", "src/images",
+    });
+    render_step.dependOn(&mkdir_cmd.step);
+    
+    const render_cmd = b.addSystemCommand(&.{
+        "sh",
+        "-c",
+    });
+    
+    const exe_path = b.getInstallPath(.bin, exe.name);
+    const redirect_command = b.fmt("\"{s}\" > src/images/image.ppm", .{exe_path});
+
+    render_cmd.addArg(redirect_command);
+    render_cmd.step.dependOn(b.getInstallStep());
+    render_cmd.step.dependOn(&mkdir_cmd.step);
+    
+    render_step.dependOn(&render_cmd.step);
+    
+    const info_cmd = b.addSystemCommand(&.{
+        "echo",
+        "Image written to src/images/image.ppm",
+    });
+    info_cmd.step.dependOn(&render_cmd.step);
+    render_step.dependOn(&info_cmd.step);
 }
